@@ -1,0 +1,174 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fracture density modeling &#8212; PISM, a Parallel Ice Sheet Model 2.0.4 documentation</title>
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"dx": "\\Delta x", "dy": "\\Delta y", "dz": "\\Delta z", "dt": "\\Delta t", "km": "\\,\\text{km}", "Diff": [" \\frac{\\mathrm{d}#1}{\\mathrm{d}#2} ", "2"], "diff": [" \\frac{\\partial #1}{\\partial #2} ", "2"], "var": [" {#1}_{\\text{#2}} ", "2"], "h": [" \\var{h}{#1} ", "1"], "T": [" \\var{T}{#1} ", "1"], "m": [" \\var{m}{#1} ", "1"], "ms": [" \\var{m^{*}}{#1} ", "1"], "psw": "p_{\\text{water}}", "pice": "p_{\\text{ice}}", "pmelange": "\\bar p_{\\text{melange}}", "rhoi": "\\rho_{\\text{ice}}", "rhow": "\\rho_{\\text{water}}", "n": "\\boldsymbol{n}", "nx": "\\n_{x}", "ny": "\\n_{y}", "phimin": "\\phi_{\\mathrm{min}}", "phimax": "\\phi_{\\mathrm{max}}", "bmin": "b_{\\mathrm{min}}", "bmax": "b_{\\mathrm{max}}", "bq": "\\mathbf{q}", "Up": ["\\operatorname{Up}\\left(#1\\big|#2\\right)", "2"], "uppair": ["\\left\\{\\begin{matrix} #1 \\\\ #2 \\end{matrix}\\right\\}", "2"], "Div": "\\nabla \\cdot", "V": "\\mathbf{V}", "Wtill": "W_{\\mathrm{till}}", "zs": "z_{\\text{sea level}}", "uu": "\\boldsymbol{u}", "nz": "\\n_{z}", "td": ["t^{D}_{#1}", "1"], "D": "\\displaystyle", "viscosity": "\\nu", "partI": "(2\\tilde N_{xx} + \\tilde N_{yy})", "partII": "(\\tilde N_{xy})", "E": "\\dot{\\boldsymbol{\\epsilon}}", "exponent": "\\frac{1-n}{2n}", "p": ["\\left(#1\\right)", "1"], "f": "\\rho\\, g\\, \\nabla s", "Id": "\\int_{\\Omega}", "Ib": "\\int_{\\partial\\Omega}", "Ibase": "\\int_{\\text{base}}", "dphi": ["\\diff{\\varphi_{#1}}{#2}", "2", "i"], "dpsi": ["\\diff{\\psi_{#1}}{#2}", "2", "i"], "Hmin": "H_{\\text{min}}", "dbeta": "\\diff{\\beta}{\\alpha}", "K": ["K_{i,j,#1,#2}", "2"], "ELA": "h_{\\text{ELA}}", "dphimin": "\\Delta \\phi_{\\mathrm{min}}", "dphimax": "\\Delta \\phi_{\\mathrm{max}}"}}})</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="next" title="Modeling individual outlet glaciers" href="../regional/index.html" />
+    <link rel="prev" title="Modeling melange back-pressure" href="melange.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+<div class="documentwrapper">
+  <div class="bodywrapper">
+    <div class="body" role="main">
+      
+  <div class="section" id="fracture-density-modeling">
+<span id="sec-damage"></span><h1>Fracture density modeling<a class="headerlink" href="#fracture-density-modeling" title="Permalink to this headline">¶</a></h1>
+<p>The fracture density approach in PISM is based on <a class="bibtex reference internal" href="../../../zzz_references_html.html#albrechtlevermann2012" id="id1">[92]</a>
+and assumes a macroscopic measure for the abundance of (partly microscale) crevasses
+and rifts that form in ice (shelves) and that can be transported with the ice flow
+as represented in a continuum ice-flow model. This approach is similar to the
+Continuum Damage Mechanics (CDM) (e.g. <a class="bibtex reference internal" href="../../../zzz_references_html.html#lemaitre1996damage" id="id2">[93]</a> and
+<a class="bibtex reference internal" href="../../../zzz_references_html.html#borstad2013creep" id="id3">[94]</a>) introducing a damage state variable (<span class="math notranslate nohighlight">\(\phi\)</span> or <span class="math notranslate nohighlight">\(D\)</span>) that
+equals zero for fully intact ice and one for fully fractured ice, that can be
+interpreted as a loss of all load bearing capacity.</p>
+<p>The feedback of damage to the ice flow (creep) works within the existing constitutive
+framework by introducing a linear mapping between the actual physical (damaged) state
+of the material and an effective state that is compatible with a homogeneous,
+continuum representation of the creep law (Eq. 6 in <a class="bibtex reference internal" href="../../../zzz_references_html.html#albrechtlevermann2014softening" id="id4">[95]</a>).</p>
+<p>Fractures form above a critical stress threshold <span class="math notranslate nohighlight">\(\sigma_{\text{cr}}\)</span> in the ice (e.g. von
+Mises criterion, maximum stress criterion or fracture toughness from Linear Elastic Fracture
+Mechanics) with a fracture growth rate proportional to <span class="math notranslate nohighlight">\(\gamma\)</span> (Eq. 2 in
+<a class="bibtex reference internal" href="../../../zzz_references_html.html#albrechtlevermann2014softening" id="id5">[95]</a>), that is related to the strain rate (longitudinal
+spreading or effective strain rate; Eq. 9 in <a class="bibtex reference internal" href="../../../zzz_references_html.html#albrechtlevermann2012" id="id6">[92]</a>). Fracture
+healing is assumed to occur with a defined healing rate below a strain rate threshold
+(scaled with the difference to the threshold or constant; Eq. 11 in
+<a class="bibtex reference internal" href="../../../zzz_references_html.html#albrechtlevermann2012" id="id7">[92]</a>).</p>
+<p>The fracture growth constant <span class="math notranslate nohighlight">\(\gamma\)</span> (<a class="reference internal" href="../../parameters/index.html#config-fracture_density.gamma"><code class="docutils literal notranslate"><span class="pre">fracture_density</span></code>&shy;<code class="docutils literal notranslate"><span class="pre">.gamma</span></code></a>) is ignored if
+<a class="reference internal" href="../../parameters/index.html#config-fracture_density.borstad_limit"><code class="docutils literal notranslate"><span class="pre">fracture_density</span></code>&shy;<code class="docutils literal notranslate"><span class="pre">.borstad_limit</span></code></a> is set.</p>
+<p>To enable this model, set <a class="reference internal" href="../../parameters/index.html#config-fracture_density.enabled"><code class="docutils literal notranslate"><span class="pre">fracture_density</span></code>&shy;<code class="docutils literal notranslate"><span class="pre">.enabled</span></code></a>.</p>
+<p class="rubric">Parameters</p>
+<p>Prefix: <code class="docutils literal notranslate"><span class="pre">fracture_density.</span></code></p>
+<ol class="simple">
+<li><p><a class="reference internal" href="../../parameters/index.html#config-fracture_density.borstad_limit"><code class="docutils literal notranslate"><span class="pre">borstad_limit</span></code></a> (no) Model fracture growth according to the constitutive law in <a class="bibtex reference internal" href="../../../zzz_references_html.html#borstad2016constitutive" id="id8">[96]</a> (Eq. 4), ignoring <a class="reference internal" href="../../parameters/index.html#config-fracture_density.gamma"><code class="docutils literal notranslate"><span class="pre">fracture_density</span></code>&shy;<code class="docutils literal notranslate"><span class="pre">.gamma</span></code></a>.</p></li>
+<li><p><a class="reference internal" href="../../parameters/index.html#config-fracture_density.constant_fd"><code class="docutils literal notranslate"><span class="pre">constant_fd</span></code></a> (no) Keep fracture density fields constant in time but include its softening effect.</p></li>
+<li><p><a class="reference internal" href="../../parameters/index.html#config-fracture_density.constant_healing"><code class="docutils literal notranslate"><span class="pre">constant_healing</span></code></a> (no) Use a constant healing rate <span class="math notranslate nohighlight">\(-\gamma_h \dot{\epsilon}_h\)</span> independent of the local strain rate.</p></li>
+<li><p><a class="reference internal" href="../../parameters/index.html#config-fracture_density.fd2d_scheme"><code class="docutils literal notranslate"><span class="pre">fd2d_scheme</span></code></a> (no) Use an alternative transport scheme to reduce numerical diffusion (Eq. 10 in <a class="bibtex reference internal" href="../../../zzz_references_html.html#albrechtlevermann2014softening" id="id9">[95]</a>)</p></li>
+<li><p><a class="reference internal" href="../../parameters/index.html#config-fracture_density.fracture_weighted_healing"><code class="docutils literal notranslate"><span class="pre">fracture_weighted_healing</span></code></a> (no) Multiply the healing rate by <span class="math notranslate nohighlight">\(1 - D\)</span>, i.e. assume that highly damaged ice heals slower. This mechanism can be combined with <a class="reference internal" href="../../parameters/index.html#config-fracture_density.constant_healing"><code class="docutils literal notranslate"><span class="pre">fracture_density</span></code>&shy;<code class="docutils literal notranslate"><span class="pre">.constant_healing</span></code></a>.</p></li>
+<li><p><a class="reference internal" href="../../parameters/index.html#config-fracture_density.gamma"><code class="docutils literal notranslate"><span class="pre">gamma</span></code></a> (1) fracture growth constant <span class="math notranslate nohighlight">\(\gamma\)</span></p></li>
+<li><p><a class="reference internal" href="../../parameters/index.html#config-fracture_density.gamma_h"><code class="docutils literal notranslate"><span class="pre">gamma_h</span></code></a> (0) fracture healing constant <span class="math notranslate nohighlight">\(\gamma_{h}\)</span></p></li>
+<li><p><a class="reference internal" href="../../parameters/index.html#config-fracture_density.healing_threshold"><code class="docutils literal notranslate"><span class="pre">healing_threshold</span></code></a> (2e-10<em> 1/s</em>) fracture healing strain rate threshold <span class="math notranslate nohighlight">\(\dot \epsilon_{h}\)</span></p></li>
+<li><p><a class="reference internal" href="../../parameters/index.html#config-fracture_density.include_grounded_ice"><code class="docutils literal notranslate"><span class="pre">include_grounded_ice</span></code></a> (no) Model fracture density in grounded areas (e.g. along ice stream shear zones) in addition to ice shelves</p></li>
+<li><p><a class="reference internal" href="../../parameters/index.html#config-fracture_density.initiation_threshold"><code class="docutils literal notranslate"><span class="pre">initiation_threshold</span></code></a> (70000<em> Pa</em>) fracture initiation stress threshold <span class="math notranslate nohighlight">\(\sigma_{\text{cr}}\)</span></p></li>
+<li><p><a class="reference internal" href="../../parameters/index.html#config-fracture_density.lefm"><code class="docutils literal notranslate"><span class="pre">lefm</span></code></a> (no) Use the mixed-mode fracture toughness stress criterion based on Linear Elastic Fracture Mechanics, Eqs. 8-9 in <a class="bibtex reference internal" href="../../../zzz_references_html.html#albrechtlevermann2014softening" id="id10">[95]</a></p></li>
+<li><p><a class="reference internal" href="../../parameters/index.html#config-fracture_density.max_shear_stress"><code class="docutils literal notranslate"><span class="pre">max_shear_stress</span></code></a> (no) Use the maximum shear stress criterion for fracture formation (Tresca or Guest criterion in literature), which is more stringent than the default von Mises criterion, see Eq. 7 in <a class="bibtex reference internal" href="../../../zzz_references_html.html#albrechtlevermann2014softening" id="id11">[95]</a></p></li>
+<li><p><a class="reference internal" href="../../parameters/index.html#config-fracture_density.phi0"><code class="docutils literal notranslate"><span class="pre">phi0</span></code></a> (0) Fracture density value used at grid points where ice velocity is prescribed. This assumes that all ice entering a shelf at <code class="variable docutils literal notranslate"><span class="pre">bc_mask</span></code> locations has the same fracture density.</p></li>
+<li><p><a class="reference internal" href="../../parameters/index.html#config-fracture_density.softening_lower_limit"><code class="docutils literal notranslate"><span class="pre">softening_lower_limit</span></code></a> (1) Parameter controlling the strength of the feedback of damage on the ice flow. If <span class="math notranslate nohighlight">\(1\)</span>: no feedback, if <span class="math notranslate nohighlight">\(0\)</span>: full feedback (<span class="math notranslate nohighlight">\(\epsilon\)</span> in Eq. 6 in <a class="bibtex reference internal" href="../../../zzz_references_html.html#albrechtlevermann2014softening" id="id12">[95]</a>)</p></li>
+</ol>
+<p class="rubric">Testing</p>
+<p>See the scripts in <code class="docutils literal notranslate"><span class="pre">example/ross/fracture</span></code> for a way to test different damage options
+and parameter values. Build a setup for the Ross Ice Shelf and let the damage field
+evolve, with fracture bands reaching all the way from the inlets to the calving front.</p>
+</div>
+
+
+      <hr>
+      <table style="width: 100%">
+        <tr>
+          <td style="text-align: left; width: 30%">
+              <a class="reference internal" href="melange.html">Previous</a>
+          </td>
+          <td style="text-align: center; width: 30%">
+              <a class="reference internal" href="index.html">Up</a>
+          </td>
+          <td style="text-align: right; width: 30%">
+              <a class="reference internal" href="../regional/index.html">Next</a>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../../index.html">
+    <img class="logo" src="../../../_static/pism-logo.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../acknowledgements.html">Acknowledgements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation/index.html">Installing PISM</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../index.html">PISM User’s Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../std-greenland/index.html">Getting started: a Greenland ice sheet example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../highlevelview/index.html">Ice dynamics, the PISM view</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../initialization/index.html">Initialization and bootstrapping</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../index.html">Modeling choices</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../computational/index.html">Model domain, grid, and time</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../dynamics/index.html">Ice dynamics and thermodynamics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../subglacier/index.html">The subglacier</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="index.html">Marine ice sheet modeling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../regional/index.html">Modeling individual outlet glaciers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../disabling.html">Disabling sub-models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../hard-choices.html">Dealing with more difficult modeling choices</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../practical-usage/index.html">Practical usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../simplified-geometry/index.html">Simplified geometry experiments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../verification/index.html">Verification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../validation/index.html">Validation case studies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../jakobshavn/index.html">Example: A regional model of the Jakobshavn outlet glacier in Greenland</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../parameters/index.html">Configuration parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../diagnostics/index.html">Diagnostic quantities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../climate_forcing/index.html">Climate forcing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../technical/index.html">Technical notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing/index.html">Contributing to PISM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../authorship.html">Authorship</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zzz_references_html.html">References</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      Git revision v2.0.3-16-gad24975a0
+      committed by Constantine Khrulev
+      on 2022-05-25 10:48:10 -0800 |
+      &copy; 2004--2022, the PISM authors.
+      
+    </div>
+  </body>
+</html>

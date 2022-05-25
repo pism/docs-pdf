@@ -1,0 +1,294 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Notes about the flow-line SSA &#8212; PISM, a Parallel Ice Sheet Model 2.0.4 documentation</title>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"dx": "\\Delta x", "dy": "\\Delta y", "dz": "\\Delta z", "dt": "\\Delta t", "km": "\\,\\text{km}", "Diff": [" \\frac{\\mathrm{d}#1}{\\mathrm{d}#2} ", "2"], "diff": [" \\frac{\\partial #1}{\\partial #2} ", "2"], "var": [" {#1}_{\\text{#2}} ", "2"], "h": [" \\var{h}{#1} ", "1"], "T": [" \\var{T}{#1} ", "1"], "m": [" \\var{m}{#1} ", "1"], "ms": [" \\var{m^{*}}{#1} ", "1"], "psw": "p_{\\text{water}}", "pice": "p_{\\text{ice}}", "pmelange": "\\bar p_{\\text{melange}}", "rhoi": "\\rho_{\\text{ice}}", "rhow": "\\rho_{\\text{water}}", "n": "\\boldsymbol{n}", "nx": "\\n_{x}", "ny": "\\n_{y}", "phimin": "\\phi_{\\mathrm{min}}", "phimax": "\\phi_{\\mathrm{max}}", "bmin": "b_{\\mathrm{min}}", "bmax": "b_{\\mathrm{max}}", "bq": "\\mathbf{q}", "Up": ["\\operatorname{Up}\\left(#1\\big|#2\\right)", "2"], "uppair": ["\\left\\{\\begin{matrix} #1 \\\\ #2 \\end{matrix}\\right\\}", "2"], "Div": "\\nabla \\cdot", "V": "\\mathbf{V}", "Wtill": "W_{\\mathrm{till}}", "zs": "z_{\\text{sea level}}", "uu": "\\boldsymbol{u}", "nz": "\\n_{z}", "td": ["t^{D}_{#1}", "1"], "D": "\\displaystyle", "viscosity": "\\nu", "partI": "(2\\tilde N_{xx} + \\tilde N_{yy})", "partII": "(\\tilde N_{xy})", "E": "\\dot{\\boldsymbol{\\epsilon}}", "exponent": "\\frac{1-n}{2n}", "p": ["\\left(#1\\right)", "1"], "f": "\\rho\\, g\\, \\nabla s", "Id": "\\int_{\\Omega}", "Ib": "\\int_{\\partial\\Omega}", "Ibase": "\\int_{\\text{base}}", "dphi": ["\\diff{\\varphi_{#1}}{#2}", "2", "i"], "dpsi": ["\\diff{\\psi_{#1}}{#2}", "2", "i"], "Hmin": "H_{\\text{min}}", "dbeta": "\\diff{\\beta}{\\alpha}", "K": ["K_{i,j,#1,#2}", "2"], "ELA": "h_{\\text{ELA}}", "dphimin": "\\Delta \\phi_{\\mathrm{min}}", "dphimax": "\\Delta \\phi_{\\mathrm{max}}"}}})</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="BOMBPROOF, PISM’s numerical scheme for conservation of energy" href="bombproof.html" />
+    <link rel="prev" title="Calving front stress boundary condition" href="ssafd-cfbc.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+<div class="documentwrapper">
+  <div class="bodywrapper">
+    <div class="body" role="main">
+      
+  <div class="section" id="notes-about-the-flow-line-ssa">
+<span id="sec-flow-line-ssa"></span><h1>Notes about the flow-line SSA<a class="headerlink" href="#notes-about-the-flow-line-ssa" title="Permalink to this headline">¶</a></h1>
+<p>Using the same notation as in the rest of the manual, the flow-line case the shallow shelf
+approximation reads</p>
+<div class="math notranslate nohighlight" id="equation-eq-ssa-flow-line">
+<span class="eqno">(54)<a class="headerlink" href="#equation-eq-ssa-flow-line" title="Permalink to this equation">¶</a></span>\[\left(4 \nu H u' \right)' = \rho_i\, g\, H\, h'.\]</div>
+<p>Here <span class="math notranslate nohighlight">\(u\)</span> is the ice velocity, <span class="math notranslate nohighlight">\(\nu = \nu(u')\)</span> is the ice viscosity, <span class="math notranslate nohighlight">\(H\)</span> is the ice
+thickness, and <span class="math notranslate nohighlight">\(h\)</span> is the ice surface elevation.</p>
+<p>Let <span class="math notranslate nohighlight">\(\alpha = (1 - \rhoi / \rhow)\)</span> and note that <span class="math notranslate nohighlight">\(h = \alpha\, H\)</span> whenever ice is
+floating, so</p>
+<div class="math notranslate nohighlight" id="equation-eq-ssa-flow-line-2">
+<span class="eqno">(55)<a class="headerlink" href="#equation-eq-ssa-flow-line-2" title="Permalink to this equation">¶</a></span>\[\left(4 \bar \nu H u' \right)' = \frac12 \alpha\, \rho_i\, g\, (H^2)'.\]</div>
+<p>We can easily integrate this, getting</p>
+<div class="math notranslate nohighlight" id="equation-eq-ssa-flow-line-3">
+<span class="eqno">(56)<a class="headerlink" href="#equation-eq-ssa-flow-line-3" title="Permalink to this equation">¶</a></span>\[4 \bar \nu H u' = \frac12 \alpha\, \rho_i\, g\, H^2.\]</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This is a non-linear <em>first-order</em> ODE for the ice velocity <span class="math notranslate nohighlight">\(u\)</span>.</p>
+</div>
+<div class="section" id="an-observation">
+<span id="sec-ssa-flow-line-invariance"></span><h2>An observation<a class="headerlink" href="#an-observation" title="Permalink to this headline">¶</a></h2>
+<p>Consider a boundary-value problem for the velocity <span class="math notranslate nohighlight">\(u\)</span> of a floating ice shelf on an
+interval <span class="math notranslate nohighlight">\([0, L]\)</span>:</p>
+<div class="math notranslate nohighlight" id="equation-eq-ssa-flowline-bvp">
+<span class="eqno">(57)<a class="headerlink" href="#equation-eq-ssa-flowline-bvp" title="Permalink to this equation">¶</a></span>\[ \begin{align}\begin{aligned}\left(4 \nu H u' \right)' &amp;= \rho_i\, g\, H\, h',\\u(0) &amp;= u_{0},\\\left. \left( 4\nu H u' \right) \right|_{x=L} &amp;= \tau_{\text{stat}}(L),\\\tau_{\text{stat}}(x) &amp;= \frac12 \rhoi\, g\, \alpha\, H(x)^2.\end{aligned}\end{align} \]</div>
+<p>Now consider a similar BVP on <span class="math notranslate nohighlight">\([0, a]\)</span> for some positive <span class="math notranslate nohighlight">\(a &lt; L\)</span>:</p>
+<div class="math notranslate nohighlight" id="equation-eq-ssa-flowline-bvp-2">
+<span class="eqno">(58)<a class="headerlink" href="#equation-eq-ssa-flowline-bvp-2" title="Permalink to this equation">¶</a></span>\[ \begin{align}\begin{aligned}\left(4 \nu H v' \right)' &amp;= \rho_i\, g\, H\, h',\\v(0) &amp;= u_{0},\\\left. \left( 4\nu(v') H v' \right) \right|_{x=a} &amp;= \tau_{\text{stat}}(a).\end{aligned}\end{align} \]</div>
+<p>Because <a class="reference internal" href="#equation-eq-ssa-flowline-bvp">(57)</a> is a first-order ODE, the solutions <span class="math notranslate nohighlight">\(u\)</span> of
+<a class="reference internal" href="#equation-eq-ssa-flowline-bvp">(57)</a> and <span class="math notranslate nohighlight">\(v\)</span> of <a class="reference internal" href="#equation-eq-ssa-flowline-bvp-2">(58)</a> <em>coincide</em> on <span class="math notranslate nohighlight">\([0, a]\)</span>,
+i.e. <span class="math notranslate nohighlight">\(u(x) = v(x)\)</span> for all <span class="math notranslate nohighlight">\(x \in [0, a]\)</span>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This implies that the velocity <span class="math notranslate nohighlight">\(u(x)\)</span> of a floating flow-line ice shelf modeled by
+<a class="reference internal" href="#equation-eq-ssa-flowline-bvp">(57)</a> is not sensitive to ice geometry perturbations at locations
+downstream from <span class="math notranslate nohighlight">\(x\)</span>.</p>
+</div>
+</div>
+<div class="section" id="discrete-analog-of-this-property">
+<span id="sec-ssa-flow-line-discretized"></span><h2>Discrete analog of this property<a class="headerlink" href="#discrete-analog-of-this-property" title="Permalink to this headline">¶</a></h2>
+<p>Let <span class="math notranslate nohighlight">\(N &gt; 2\)</span> be an integer and define the <span class="math notranslate nohighlight">\(N\)</span>-point grid <span class="math notranslate nohighlight">\(x_{j} = 0 + j\dx\)</span>, <span class="math notranslate nohighlight">\(\dx =
+L/(N-1)\)</span>.</p>
+<p>Discretizing <a class="reference internal" href="#equation-eq-ssa-flowline-bvp">(57)</a> on this grid results in a non-linear system
+with <span class="math notranslate nohighlight">\(N-1\)</span> unknowns (call this system <span class="math notranslate nohighlight">\(S_{L}\)</span>).</p>
+<p>Let <span class="math notranslate nohighlight">\(a = L - \dx\)</span> and write down a system of equations by discretizing
+<a class="reference internal" href="#equation-eq-ssa-flowline-bvp-2">(58)</a> on the grid consisting of the first <span class="math notranslate nohighlight">\(N-1\)</span> of <span class="math notranslate nohighlight">\(x_{j}\)</span>. This
+system (call it <span class="math notranslate nohighlight">\(S_{a}\)</span>) has <span class="math notranslate nohighlight">\(N-2\)</span> unknowns.</p>
+<p>The property we would like our discretization to have is this:</p>
+<blockquote>
+<div><p>If <span class="math notranslate nohighlight">\(u_{1},\dots,u_{N-1}\)</span> is the solution of <span class="math notranslate nohighlight">\(S_{L}\)</span> and <span class="math notranslate nohighlight">\(v_{1},\dots,v_{N-2}\)</span> solves
+<span class="math notranslate nohighlight">\(S_{a}\)</span>, then <span class="math notranslate nohighlight">\(u_{k} = v_{k}\)</span> for all <span class="math notranslate nohighlight">\(k = 1,\dots,N-2\)</span>.</p>
+</div></blockquote>
+<p>Note that the first <span class="math notranslate nohighlight">\(N-3\)</span> equations in <span class="math notranslate nohighlight">\(S_{L}\)</span> and <span class="math notranslate nohighlight">\(S_{a}\)</span> are the same.</p>
+</div>
+<div class="section" id="discretization">
+<span id="sec-ssa-flow-line-discrete"></span><h2>Discretization<a class="headerlink" href="#discretization" title="Permalink to this headline">¶</a></h2>
+<p>Let <span class="math notranslate nohighlight">\([X]_{j}\)</span> be an approximation of <span class="math notranslate nohighlight">\(X\)</span> at a grid location <span class="math notranslate nohighlight">\(j\)</span>.</p>
+<p>The standard approach <em>within</em> the domain is to use centered finite differences and linear
+interpolation to approximate staggered-grid values, i.e. averaging values at immediate
+regular grid point neighbors:</p>
+<div class="math notranslate nohighlight" id="equation-eq-ssa-flow-line-fd-basics">
+<span class="eqno">(59)<a class="headerlink" href="#equation-eq-ssa-flow-line-fd-basics" title="Permalink to this equation">¶</a></span>\[ \begin{align}\begin{aligned}{}[f]_{i + \frac12} &amp;= \frac12 (f_i + f_{i+1}),\\{}[f']_{i} &amp;= \frac1{\dx}([f]_{i+\frac12} + [f]_{i-\frac12}).\end{aligned}\end{align} \]</div>
+<div class="section" id="interior">
+<span id="sec-ssafd-flow-line-generic"></span><h3>Interior<a class="headerlink" href="#interior" title="Permalink to this headline">¶</a></h3>
+<div class="math notranslate nohighlight" id="equation-eq-ssa-flow-line-interior">
+<span class="eqno">(60)<a class="headerlink" href="#equation-eq-ssa-flow-line-interior" title="Permalink to this equation">¶</a></span>\[\frac1{\dx} \left( [4\nu(u')H u']_{i+\frac12} - [4\nu(u')H u']_{i-\frac12} \right)
+= [\rhoi\, g\, \alpha\, H\, H']_{i}.\]</div>
+</div>
+<div class="section" id="ice-front">
+<span id="sec-ssa-flow-line-ice-front"></span><h3>Ice front<a class="headerlink" href="#ice-front" title="Permalink to this headline">¶</a></h3>
+<p>Let <span class="math notranslate nohighlight">\(n\)</span> be the last grid point with non-zero ice thickness, i.e. assume that <span class="math notranslate nohighlight">\(H_{k} = 0\)</span>
+for <span class="math notranslate nohighlight">\(k &gt; n\)</span>.</p>
+<p>The implementation of the stress boundary condition at the ice front amounts to adding one
+more equation (see <a class="reference internal" href="ssafd-cfbc.html#equation-ssafd-cfbc-vertintbdry">(53)</a>):</p>
+<div class="math notranslate nohighlight" id="equation-eq-ssa-flow-line-cfbc">
+<span class="eqno">(61)<a class="headerlink" href="#equation-eq-ssa-flow-line-cfbc" title="Permalink to this equation">¶</a></span>\[{}[4\nu(u') H u']_{n+\frac12} = [\tau_{\text{stat}}]_{n+\frac12}.\]</div>
+<p>We can then combine <a class="reference internal" href="#equation-eq-ssa-flow-line-cfbc">(61)</a> with <a class="reference internal" href="#equation-eq-ssa-flow-line-interior">(60)</a> (with
+<span class="math notranslate nohighlight">\(i\)</span> replaced by <span class="math notranslate nohighlight">\(n\)</span>) to get the discretization at the ice front:</p>
+<div class="math notranslate nohighlight" id="equation-eq-ssa-flow-line-cf">
+<span class="eqno">(62)<a class="headerlink" href="#equation-eq-ssa-flow-line-cf" title="Permalink to this equation">¶</a></span>\[ \begin{align}\begin{aligned}\frac1{\dx}\left( [\tau_{\text{stat}}]_{n+\frac12} - [4\nu(u')H u']_{n-\frac12} \right)
+&amp;= \rhoi\, g\, \alpha\, [H\, H']_{n},\\- [4\nu(u')H u']_{n-\frac12}
+&amp;= \dx\rhoi\, g\, \alpha\, [H\, H']_{n} - [\tau_{\text{stat}}]_{n+\frac12}.\end{aligned}\end{align} \]</div>
+</div>
+<div class="section" id="choosing-fd-approximations">
+<span id="sec-ssa-flow-line-fd"></span><h3>Choosing FD approximations<a class="headerlink" href="#choosing-fd-approximations" title="Permalink to this headline">¶</a></h3>
+<p class="rubric">Assuming that the ice front is at <span class="math notranslate nohighlight">\(n\)</span></p>
+<p>If we assume that the ice front is at <span class="math notranslate nohighlight">\(n\)</span>, the last equation in the system looks like
+<a class="reference internal" href="#equation-eq-ssa-flow-line-cf">(62)</a>:</p>
+<div class="math notranslate nohighlight" id="equation-eq-ssa-flow-line-cf-n">
+<span class="eqno">(63)<a class="headerlink" href="#equation-eq-ssa-flow-line-cf-n" title="Permalink to this equation">¶</a></span>\[- [4\nu(u')H u']_{n-\frac12}
+= \dx\rhoi\, g\, \alpha\, [H\, H']_{n} - [\tau_{\text{stat}}]_{n+\frac12}.\]</div>
+<p class="rubric">Assuming that the ice front is at <span class="math notranslate nohighlight">\(n+1\)</span></p>
+<p>If we assume that the ice front is at <span class="math notranslate nohighlight">\(n+1\)</span>, the <span class="math notranslate nohighlight">\(n\)</span>-th equation looks like a “generic”
+interior equation <a class="reference internal" href="#equation-eq-ssa-flow-line-interior">(60)</a> and we have one more equation
+(<a class="reference internal" href="#equation-eq-ssa-flow-line-cf-n">(63)</a>) shifted by <span class="math notranslate nohighlight">\(1\)</span>:</p>
+<div class="math notranslate nohighlight" id="equation-eq-ssa-flow-line-cf-n-plus-1">
+<span class="eqno">(64)<a class="headerlink" href="#equation-eq-ssa-flow-line-cf-n-plus-1" title="Permalink to this equation">¶</a></span>\[ \begin{align}\begin{aligned}\frac1{\dx} \left( [4\nu(u')H u']_{n+\frac12} - [4\nu(u')H u']_{n-\frac12} \right)
+&amp;= [\rhoi\, g\, \alpha\, H\, H']_{n}.\\- [4\nu(u')H u']_{(n+1)-\frac12}
+&amp;= \dx\rhoi\, g\, \alpha\, [H\, H']_{n+1} - [\tau_{\text{stat}}]_{n+1+\frac12}.\end{aligned}\end{align} \]</div>
+<p>Note that the second equation in <a class="reference internal" href="#equation-eq-ssa-flow-line-cf-n-plus-1">(64)</a> is the same as
+<a class="reference internal" href="#equation-eq-ssa-flow-line-cf-n">(63)</a>, but with the index shifted by <span class="math notranslate nohighlight">\(1\)</span>. Both correspond to
+locations <em>at the ice front</em>.</p>
+<p class="rubric">The goal</p>
+<p>We want to choose FD approximations <span class="math notranslate nohighlight">\([\tau_{\text{stat}}]_{*}\)</span> and <span class="math notranslate nohighlight">\([H\, H']_{*}\)</span>
+in a way that would make it possible to obtain <a class="reference internal" href="#equation-eq-ssa-flow-line-cf-n">(63)</a> by
+transforming equations <a class="reference internal" href="#equation-eq-ssa-flow-line-cf-n-plus-1">(64)</a>.</p>
+<p>We propose using <em>constant extrapolation</em> to approximate <span class="math notranslate nohighlight">\(H_{n+\frac12}\)</span></p>
+<div class="math notranslate nohighlight" id="equation-eq-ssa-flow-line-fd-approx">
+<span class="eqno">(65)<a class="headerlink" href="#equation-eq-ssa-flow-line-fd-approx" title="Permalink to this equation">¶</a></span>\[\begin{split}{}[H]_{i+\frac12} &amp;=
+\begin{cases}
+H_{i}, &amp;i \text{ is at the ice front}\\
+\frac12(H_{i} + H_{i+1}), &amp;\text{otherwise}.
+\end{cases}\end{split}\]</div>
+<p>This gives us the following approximation of derivatives:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}{}[H']_{i} &amp;=
+\begin{cases}
+\frac1{\dx}(H_{i} - [H]_{i-\frac12}), &amp;i \text{ is at the ice front}\\
+\frac1{\dx}([H]_{i+\frac12} - [H]_{i-\frac12}), &amp;\text{otherwise}.
+\end{cases}\end{split}\]</div>
+<p>After substituting <a class="reference internal" href="#equation-eq-ssa-flow-line-fd-basics">(59)</a> this becomes</p>
+<div class="math notranslate nohighlight" id="equation-eq-ssa-flow-line-fd-approx-derivative">
+<span class="eqno">(66)<a class="headerlink" href="#equation-eq-ssa-flow-line-fd-approx-derivative" title="Permalink to this equation">¶</a></span>\[\begin{split}{}[H']_{i} &amp;=
+\begin{cases}
+\frac1{2\dx}(H_{i} - H_{i-1}), &amp;i \text{ is at the ice front}\\
+\frac1{2\dx}(H_{i+1} - H_{i-1}), &amp;\text{otherwise}.
+\end{cases}\end{split}\]</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The ice front case in <a class="reference internal" href="#equation-eq-ssa-flow-line-fd-approx-derivative">(66)</a> is the <strong>one half</strong>
+of the standard one-sided finite-difference approximation of <span class="math notranslate nohighlight">\(H'\)</span>.</p>
+</div>
+<p class="rubric">Checking if <a class="reference internal" href="#equation-eq-ssa-flow-line-fd-approx">(65)</a> is the right choice</p>
+<p>Consider the first equation in <a class="reference internal" href="#equation-eq-ssa-flow-line-cf-n-plus-1">(64)</a> and note that it
+corresponds to the case in which <span class="math notranslate nohighlight">\(n\)</span> is <strong>not</strong> at the ice front.</p>
+<div class="math notranslate nohighlight">
+\[\frac1{\dx} \left( [4\nu(u')H u']_{n+\frac12} - [4\nu(u')H u']_{n-\frac12} \right)
+= [\rhoi\, g\, \alpha\, H\, H']_{n},\]</div>
+<p>Multiplying by <span class="math notranslate nohighlight">\(\dx\)</span> and moving one of the terms to the right hand side, we get</p>
+<div class="math notranslate nohighlight" id="equation-eq-ssa-flow-line-cf-n-plus-1-first">
+<span class="eqno">(67)<a class="headerlink" href="#equation-eq-ssa-flow-line-cf-n-plus-1-first" title="Permalink to this equation">¶</a></span>\[ \begin{align}\begin{aligned}- [4\nu(u')H u']_{n-\frac12}
+&amp;= \dx[\rhoi\, g\, \alpha\, H\, H']_{n} - [4\nu(u')H u']_{n+\frac12}.\\- [4\nu(u')H u']_{n-\frac12}
+&amp;= \dx\, \rhoi\, g\, \alpha\, H_{n}\frac{H_{n+1} - H_{n-1}}{2\dx} - [4\nu(u')H u']_{n+\frac12}.\\&amp;= \frac12\, \rhoi\, g\, \alpha\, H_{n}\, (H_{n+1} - H_{n-1}) - [4\nu(u')H u']_{n+\frac12}.\end{aligned}\end{align} \]</div>
+<p>Now consider the second equation in <a class="reference internal" href="#equation-eq-ssa-flow-line-cf-n-plus-1">(64)</a>. Note that here
+<span class="math notranslate nohighlight">\(n+1\)</span> <strong>is</strong> at the ice front.</p>
+<div class="math notranslate nohighlight" id="equation-eq-ssa-flow-line-cf-n-plus-1-second">
+<span class="eqno">(68)<a class="headerlink" href="#equation-eq-ssa-flow-line-cf-n-plus-1-second" title="Permalink to this equation">¶</a></span>\[ \begin{align}\begin{aligned}- [4\nu(u')H u']_{(n+1)-\frac12}
+&amp;= \dx\rhoi\, g\, \alpha\, [H\, H']_{n+1} - [\tau_{\text{stat}}]_{n+1+\frac12}.\\&amp;= \dx\rhoi\, g\, \alpha\, H_{n+1}[H']_{n+1} - \frac12 \rhoi\, g\, \alpha\, [H]_{n+1+\frac12}^{2}.\\&amp;= \dx\rhoi\, g\, \alpha\, H_{n+1}\frac{H_{n+1} - H_{n}}{2\dx} - \frac12 \rhoi\, g\,
+\alpha\, H_{n+1}^{2}\\&amp;= \frac12\, \rhoi\, g\, \alpha( H_{n+1}(H_{n+1} - H_{n}) - H_{n+1}^{2} )\\&amp;= \frac12\, \rhoi\, g\, \alpha( H_{n+1}^{2} - H_{n+1}H_{n} - H_{n+1}^{2} )\\&amp;= -\frac12\, \rhoi\, g\, \alpha\, H_{n+1}H_{n}.\end{aligned}\end{align} \]</div>
+<p>Put together, <a class="reference internal" href="#equation-eq-ssa-flow-line-cf-n-plus-1-first">(67)</a> and
+<a class="reference internal" href="#equation-eq-ssa-flow-line-cf-n-plus-1-second">(68)</a> read as follows:</p>
+<div class="math notranslate nohighlight" id="equation-eq-ssa-flow-line-cf-n-plus-1-rewritten">
+<span class="eqno">(69)<a class="headerlink" href="#equation-eq-ssa-flow-line-cf-n-plus-1-rewritten" title="Permalink to this equation">¶</a></span>\[ \begin{align}\begin{aligned}- [4\nu(u')H u']_{n-\frac12}
+&amp;= \frac12\, \rhoi\, g\, \alpha\, H_{n}\, (H_{n+1} - H_{n-1}) - [4\nu(u')H u']_{n+\frac12},\\- [4\nu(u')H u']_{n+\frac12}
+&amp;= -\frac12\, \rhoi\, g\, \alpha\, H_{n+1}H_{n}.\end{aligned}\end{align} \]</div>
+<p>Substituting the second equation into the first produces</p>
+<div class="math notranslate nohighlight" id="equation-eq-ssa-flow-line-cf-n-plus-1-final">
+<span class="eqno">(70)<a class="headerlink" href="#equation-eq-ssa-flow-line-cf-n-plus-1-final" title="Permalink to this equation">¶</a></span>\[ \begin{align}\begin{aligned}- [4\nu(u')H u']_{n-\frac12}
+&amp;= \frac12\, \rhoi\, g\, \alpha\, H_{n}\, (H_{n+1} - H_{n-1}) - \frac12\, \rhoi\, g\, \alpha\, H_{n+1}H_{n}\\&amp;= \frac12\, \rhoi\, g\, \alpha\, (H_{n}\, (H_{n+1} - H_{n-1}) - H_{n+1}H_{n})\\&amp;= -\frac12\, \rhoi\, g\, \alpha\, H_{n}\, H_{n-1}\end{aligned}\end{align} \]</div>
+<p>Compare <a class="reference internal" href="#equation-eq-ssa-flow-line-cf-n-plus-1-final">(70)</a> to
+<a class="reference internal" href="#equation-eq-ssa-flow-line-cf-n-plus-1-second">(68)</a>. Note that <em>they are the same</em>, except for the
+index shift. In other words, <a class="reference internal" href="#equation-eq-ssa-flow-line-cf-n-plus-1-final">(70)</a> is the same as
+<a class="reference internal" href="#equation-eq-ssa-flow-line-cf-n">(63)</a>, as desired.</p>
+<p>This confirms that finite difference approximations <a class="reference internal" href="#equation-eq-ssa-flow-line-fd-approx">(65)</a> and
+<a class="reference internal" href="#equation-eq-ssa-flow-line-fd-approx-derivative">(66)</a> result in a discretization with the property
+we seek:</p>
+<blockquote>
+<div><p>modeled ice velocity at a given location <span class="math notranslate nohighlight">\(x\)</span> along a flow-line ice shelf is not
+sensitive to geometry perturbations downstream from <span class="math notranslate nohighlight">\(x\)</span>.</p>
+</div></blockquote>
+</div>
+</div>
+</div>
+
+
+      <hr>
+      <table style="width: 100%">
+        <tr>
+          <td style="text-align: left; width: 30%">
+              <a class="reference internal" href="ssafd-cfbc.html">Previous</a>
+          </td>
+          <td style="text-align: center; width: 30%">
+              <a class="reference internal" href="index.html">Up</a>
+          </td>
+          <td style="text-align: right; width: 30%">
+              <a class="reference internal" href="bombproof.html">Next</a>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/pism-logo.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../acknowledgements.html">Acknowledgements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation/index.html">Installing PISM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../manual/index.html">PISM User’s Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../climate_forcing/index.html">Climate forcing</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Technical notes</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="release_checklist.html">Release checklist</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cf-standard-names.html">CF standard names used by PISM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vertchange.html">On the vertical coordinate in PISM, and a critical change of variable</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bed_roughness.html">Using Schoof’s parameterized bed roughness technique in PISM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ssafd-cfbc.html">Calving front stress boundary condition</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Notes about the flow-line SSA</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#an-observation">An observation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#discrete-analog-of-this-property">Discrete analog of this property</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#discretization">Discretization</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="bombproof.html">BOMBPROOF, PISM’s numerical scheme for conservation of energy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="steady-hydrology.html">Computing steady-state subglacial water flux</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ocean-th.html">Three-equation ocean model (implementation details)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="blatter-pattyn.html">Blatter stress balance solver: technical details</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing/index.html">Contributing to PISM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../authorship.html">Authorship</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../zzz_references_html.html">References</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      Git revision v2.0.3-16-gad24975a0
+      committed by Constantine Khrulev
+      on 2022-05-25 10:48:10 -0800 |
+      &copy; 2004--2022, the PISM authors.
+      
+    </div>
+  </body>
+</html>

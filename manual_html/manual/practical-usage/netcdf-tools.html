@@ -1,0 +1,191 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Handling NetCDF files &#8212; PISM, a Parallel Ice Sheet Model 2.0.4 documentation</title>
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Input and output" href="input-output.html" />
+    <link rel="prev" title="Practical usage" href="index.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+<div class="documentwrapper">
+  <div class="bodywrapper">
+    <div class="body" role="main">
+      
+  <div class="section" id="handling-netcdf-files">
+<span id="sec-nctoolsintro"></span><h1>Handling NetCDF files<a class="headerlink" href="#handling-netcdf-files" title="Permalink to this headline">¶</a></h1>
+<p>PISM takes one or more NetCDF files as input, performs some computation, and then produces
+one or more NetCDF files as output. However, other tools are usually needed to help to
+extract meaning from NetCDF files, and yet more NetCDF tools help with creating PISM input
+files or post-processing PISM output files.</p>
+<p>Here we list a number of NetCDF tools that can be useful in preparing input data for use
+with PISM and post-processing results; see <a class="reference internal" href="#tab-netcdfview"><span class="std std-numref">Table 20</span></a>.</p>
+<table class="docutils align-default" id="tab-netcdfview">
+<caption><span class="caption-number">Table 20 </span><span class="caption-text">A selection of tools for viewing and modifying NetCDF files.</span><a class="headerlink" href="#tab-netcdfview" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Tool</p></th>
+<th class="head"><p>Function</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ncdump</span></code> (part of <a class="reference external" href="https://www.unidata.ucar.edu/software/netcdf/">NetCDF</a>)</p></td>
+<td><p>dump binary NetCDF as <code class="docutils literal notranslate"><span class="pre">.cdl</span></code> (text) file</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ncgen</span></code> (part of <a class="reference external" href="https://www.unidata.ucar.edu/software/netcdf/">NetCDF</a>)</p></td>
+<td><p>convert <code class="docutils literal notranslate"><span class="pre">.cdl</span></code> file to binary NetCDF</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference external" href="http://cirrus.ucsd.edu/ncview/">ncview</a></p></td>
+<td><p>quick graphical view</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference external" href="https://code.mpimet.mpg.de/projects/cdo">CDO</a></p></td>
+<td><p>Climate Data Operators; command-line tools, including conservative re-mapping</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference external" href="https://www.unidata.ucar.edu/software/idv/">IDV</a></p></td>
+<td><p>more complete visualization</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference external" href="http://nco.sourceforge.net/">NCO</a></p></td>
+<td><p>NetCDF Operators; command-line tools for pre- and post-processing</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference external" href="http://www.ncl.ucar.edu">NCL</a></p></td>
+<td><p>NCAR Command Language</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference external" href="http://www.pyngl.ucar.edu">PyNGL</a></p></td>
+<td><p>Python version of NCL</p></td>
+</tr>
+</tbody>
+</table>
+<p>The PISM authors use <code class="docutils literal notranslate"><span class="pre">ncview</span></code> and “<code class="docutils literal notranslate"><span class="pre">ncdump</span> <span class="pre">-h</span></code>” for quick visualization and metadata
+examination. NCO has powerful command-line manipulation of NetCDF files, but requires some
+learning. Another such command-line tool is CDO, but to use CDO on PISM files first run
+the script <code class="docutils literal notranslate"><span class="pre">nc2cdo.py</span></code>, from the <code class="docutils literal notranslate"><span class="pre">util/</span></code> PISM directory, on the file to fix the
+metadata so that CDO will understand the mapping. Finally, Python scripts using the
+<code class="docutils literal notranslate"><span class="pre">netcdf4-python</span></code> package (see <a class="reference internal" href="../../installation/index.html#sec-installation"><span class="std std-ref">Installing PISM</span></a>) are often the best way to
+non-trivially change a NetCDF file or make publishable figures from it. MATLAB also has
+good NetCDF I/O capabilities.</p>
+<p>See <a class="reference internal" href="../highlevelview/model-hierarchy.html#tab-modelhierarchy"><span class="std std-numref">Table 4</span></a> in section <a class="reference internal" href="../highlevelview/model-hierarchy.html#sec-model-hierarchy"><span class="std std-ref">A hierarchy of simplifying assumptions for grounded ice flow</span></a> for an
+overview on the data necessary for modeling. For more information on the format of input
+files for PISM, see section <a class="reference internal" href="../initialization/index.html#sec-initboot"><span class="std std-ref">Initialization and bootstrapping</span></a>.</p>
+</div>
+
+
+      <hr>
+      <table style="width: 100%">
+        <tr>
+          <td style="text-align: left; width: 30%">
+              <a class="reference internal" href="index.html">Previous</a>
+          </td>
+          <td style="text-align: center; width: 30%">
+              <a class="reference internal" href="index.html">Up</a>
+          </td>
+          <td style="text-align: right; width: 30%">
+              <a class="reference internal" href="input-output.html">Next</a>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/pism-logo.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../acknowledgements.html">Acknowledgements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation/index.html">Installing PISM</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">PISM User’s Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../std-greenland/index.html">Getting started: a Greenland ice sheet example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../highlevelview/index.html">Ice dynamics, the PISM view</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../initialization/index.html">Initialization and bootstrapping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../modeling-choices/index.html">Modeling choices</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html">Practical usage</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Handling NetCDF files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="input-output.html">Input and output</a></li>
+<li class="toctree-l3"><a class="reference internal" href="time-stepping.html">Understanding adaptive time-stepping</a></li>
+<li class="toctree-l3"><a class="reference internal" href="saving-time-series.html">Scalar diagnostic quantities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="saving-diagnostics.html">Spatially-varying diagnostic quantities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="saving-snapshots.html">Snapshots of the model state</a></li>
+<li class="toctree-l3"><a class="reference internal" href="diagnostic-viewers.html">Run-time diagnostic viewers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parameters.html">PISM’s configuration parameters and how to change them</a></li>
+<li class="toctree-l3"><a class="reference internal" href="regridding.html">Regridding</a></li>
+<li class="toctree-l3"><a class="reference internal" href="signals.html">Signals, to control a running PISM model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mass-conservation.html">Balancing the books</a></li>
+<li class="toctree-l3"><a class="reference internal" href="petsc-options.html">PETSc options for PISM users</a></li>
+<li class="toctree-l3"><a class="reference internal" href="scripts.html">Utility and test scripts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="flowline.html">Using PISM for flow-line modeling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="modifying-pism.html">Managing source code modifications</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ismip6.html">ISMIP6 Greenland</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../simplified-geometry/index.html">Simplified geometry experiments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../verification/index.html">Verification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../validation/index.html">Validation case studies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../jakobshavn/index.html">Example: A regional model of the Jakobshavn outlet glacier in Greenland</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../parameters/index.html">Configuration parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../diagnostics/index.html">Diagnostic quantities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../climate_forcing/index.html">Climate forcing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../technical/index.html">Technical notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing/index.html">Contributing to PISM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../authorship.html">Authorship</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../zzz_references_html.html">References</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      Git revision v2.0.3-16-gad24975a0
+      committed by Constantine Khrulev
+      on 2022-05-25 10:48:10 -0800 |
+      &copy; 2004--2022, the PISM authors.
+      
+    </div>
+  </body>
+</html>

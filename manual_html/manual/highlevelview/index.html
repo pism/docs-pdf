@@ -1,0 +1,135 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ice dynamics, the PISM view &#8212; PISM, a Parallel Ice Sheet Model 2.0.4 documentation</title>
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Stress balance models: SIA, SSA, and the First Order Approximation" href="stress-balance-models.html" />
+    <link rel="prev" title="An ice dynamics parameter study" href="../std-greenland/parameter-study.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+<div class="documentwrapper">
+  <div class="bodywrapper">
+    <div class="body" role="main">
+      
+  <div class="section" id="ice-dynamics-the-pism-view">
+<span id="sec-dynamics"></span><h1>Ice dynamics, the PISM view<a class="headerlink" href="#ice-dynamics-the-pism-view" title="Permalink to this headline">¶</a></h1>
+<p>This section describes PISM’s high-level view of ice dynamics and the separation of ice
+dynamics from climate inputs.</p>
+<p>Please see <a class="reference internal" href="../modeling-choices/index.html#sec-modeling-choices"><span class="std std-ref">Modeling choices</span></a> so learn how to control PISM’s sub-models.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="stress-balance-models.html">Stress balance models: SIA, SSA, and the First Order Approximation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="model-hierarchy.html">A hierarchy of simplifying assumptions for grounded ice flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="evolutionary-vs-diagnostic.html">Evolutionary versus diagnostic modeling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="climate-inputs.html">Climate inputs, and their interface with ice dynamics</a></li>
+</ul>
+</div>
+</div>
+
+
+      <hr>
+      <table style="width: 100%">
+        <tr>
+          <td style="text-align: left; width: 30%">
+              <a class="reference internal" href="../std-greenland/parameter-study.html">Previous</a>
+          </td>
+          <td style="text-align: center; width: 30%">
+              <a class="reference internal" href="../index.html">Up</a>
+          </td>
+          <td style="text-align: right; width: 30%">
+              <a class="reference internal" href="stress-balance-models.html">Next</a>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../index.html">
+    <img class="logo" src="../../_static/pism-logo.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../acknowledgements.html">Acknowledgements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation/index.html">Installing PISM</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">PISM User’s Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../std-greenland/index.html">Getting started: a Greenland ice sheet example</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Ice dynamics, the PISM view</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="stress-balance-models.html">Stress balance models: SIA, SSA, and the First Order Approximation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="model-hierarchy.html">A hierarchy of simplifying assumptions for grounded ice flow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="evolutionary-vs-diagnostic.html">Evolutionary versus diagnostic modeling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="climate-inputs.html">Climate inputs, and their interface with ice dynamics</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../initialization/index.html">Initialization and bootstrapping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../modeling-choices/index.html">Modeling choices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../practical-usage/index.html">Practical usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../simplified-geometry/index.html">Simplified geometry experiments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../verification/index.html">Verification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../validation/index.html">Validation case studies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../jakobshavn/index.html">Example: A regional model of the Jakobshavn outlet glacier in Greenland</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../parameters/index.html">Configuration parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../diagnostics/index.html">Diagnostic quantities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../climate_forcing/index.html">Climate forcing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../technical/index.html">Technical notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing/index.html">Contributing to PISM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../authorship.html">Authorship</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../zzz_references_html.html">References</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      Git revision v2.0.3-16-gad24975a0
+      committed by Constantine Khrulev
+      on 2022-05-25 10:48:10 -0800 |
+      &copy; 2004--2022, the PISM authors.
+      
+    </div>
+  </body>
+</html>

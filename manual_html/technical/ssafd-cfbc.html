@@ -1,0 +1,271 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calving front stress boundary condition &#8212; PISM, a Parallel Ice Sheet Model 2.0.4 documentation</title>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"dx": "\\Delta x", "dy": "\\Delta y", "dz": "\\Delta z", "dt": "\\Delta t", "km": "\\,\\text{km}", "Diff": [" \\frac{\\mathrm{d}#1}{\\mathrm{d}#2} ", "2"], "diff": [" \\frac{\\partial #1}{\\partial #2} ", "2"], "var": [" {#1}_{\\text{#2}} ", "2"], "h": [" \\var{h}{#1} ", "1"], "T": [" \\var{T}{#1} ", "1"], "m": [" \\var{m}{#1} ", "1"], "ms": [" \\var{m^{*}}{#1} ", "1"], "psw": "p_{\\text{water}}", "pice": "p_{\\text{ice}}", "pmelange": "\\bar p_{\\text{melange}}", "rhoi": "\\rho_{\\text{ice}}", "rhow": "\\rho_{\\text{water}}", "n": "\\boldsymbol{n}", "nx": "\\n_{x}", "ny": "\\n_{y}", "phimin": "\\phi_{\\mathrm{min}}", "phimax": "\\phi_{\\mathrm{max}}", "bmin": "b_{\\mathrm{min}}", "bmax": "b_{\\mathrm{max}}", "bq": "\\mathbf{q}", "Up": ["\\operatorname{Up}\\left(#1\\big|#2\\right)", "2"], "uppair": ["\\left\\{\\begin{matrix} #1 \\\\ #2 \\end{matrix}\\right\\}", "2"], "Div": "\\nabla \\cdot", "V": "\\mathbf{V}", "Wtill": "W_{\\mathrm{till}}", "zs": "z_{\\text{sea level}}", "uu": "\\boldsymbol{u}", "nz": "\\n_{z}", "td": ["t^{D}_{#1}", "1"], "D": "\\displaystyle", "viscosity": "\\nu", "partI": "(2\\tilde N_{xx} + \\tilde N_{yy})", "partII": "(\\tilde N_{xy})", "E": "\\dot{\\boldsymbol{\\epsilon}}", "exponent": "\\frac{1-n}{2n}", "p": ["\\left(#1\\right)", "1"], "f": "\\rho\\, g\\, \\nabla s", "Id": "\\int_{\\Omega}", "Ib": "\\int_{\\partial\\Omega}", "Ibase": "\\int_{\\text{base}}", "dphi": ["\\diff{\\varphi_{#1}}{#2}", "2", "i"], "dpsi": ["\\diff{\\psi_{#1}}{#2}", "2", "i"], "Hmin": "H_{\\text{min}}", "dbeta": "\\diff{\\beta}{\\alpha}", "K": ["K_{i,j,#1,#2}", "2"], "ELA": "h_{\\text{ELA}}", "dphimin": "\\Delta \\phi_{\\mathrm{min}}", "dphimax": "\\Delta \\phi_{\\mathrm{max}}"}}})</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Notes about the flow-line SSA" href="ssafd-flow-line.html" />
+    <link rel="prev" title="Using Schoof’s parameterized bed roughness technique in PISM" href="bed_roughness.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+<div class="documentwrapper">
+  <div class="bodywrapper">
+    <div class="body" role="main">
+      
+  <div class="section" id="calving-front-stress-boundary-condition">
+<h1><a class="toc-backref" href="#id6">Calving front stress boundary condition</a><a class="headerlink" href="#calving-front-stress-boundary-condition" title="Permalink to this headline">¶</a></h1>
+<div class="contents topic" id="contents">
+<p class="topic-title">Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#calving-front-stress-boundary-condition" id="id6">Calving front stress boundary condition</a></p>
+<ul>
+<li><p><a class="reference internal" href="#notation" id="id7">Notation</a></p></li>
+<li><p><a class="reference internal" href="#id1" id="id8">Calving front stress boundary condition</a></p></li>
+<li><p><a class="reference internal" href="#shallow-shelf-approximation" id="id9">Shallow shelf approximation</a></p></li>
+<li><p><a class="reference internal" href="#implementing-the-calving-front-boundary-condition" id="id10">Implementing the calving front boundary condition</a></p></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="notation">
+<h2><a class="toc-backref" href="#id7">Notation</a><a class="headerlink" href="#notation" title="Permalink to this headline">¶</a></h2>
+<table class="docutils align-default" id="tab-cfbc-notation">
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Variable</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(h\)</span></p></td>
+<td><p>ice top surface elevation</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(b\)</span></p></td>
+<td><p>ice bottom surface elevation</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(H = h - b\)</span></p></td>
+<td><p>ice thickness</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(g\)</span></p></td>
+<td><p>acceleration due to gravity</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(\viscosity\)</span></p></td>
+<td><p>vertically-averaged viscosity of ice</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\n\)</span></p></td>
+<td><p>normal vector</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(B(T)\)</span></p></td>
+<td><p>ice hardness</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(D\)</span></p></td>
+<td><p>strain rate tensor</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(d_{e}\)</span></p></td>
+<td><p>effective strain rate</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(t\)</span></p></td>
+<td><p>Cauchy stress tensor</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(t^{D}\)</span></p></td>
+<td><p>deviatoric stress tensor; note <span class="math notranslate nohighlight">\(\td{ij} = t_{ij} + p \delta_{ij}\)</span></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="id1">
+<h2><a class="toc-backref" href="#id8">Calving front stress boundary condition</a><a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>In the 3D case the calving front stress boundary condition (<a class="bibtex reference internal" href="../zzz_references_html.html#greveblatter2009" id="id2">[56]</a>, equation
+(6.19)) reads</p>
+<div class="math notranslate nohighlight">
+\[\left.t\right|_{\text{cf}} \cdot \n = -\psw \n.\]</div>
+<p>Expanded in component form, and evaluating the left-hand side at the calving front and
+assuming that the calving front face is vertical (<span class="math notranslate nohighlight">\(\nz = 0\)</span>), this gives</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{array}{rcrcl}
+  (\td{xx} - p) \nx &amp;+&amp; \td{xy} \ny &amp;=&amp; -\psw \nx,\\
+  \td{xy} \nx &amp;+&amp; (\td{yy} - p) \ny &amp;=&amp; -\psw  \ny,\\
+  \td{xz} \nx &amp;+&amp; \td{yz} \ny &amp;=&amp; 0.
+\end{array}\end{split}\]</div>
+<p>Because we seek boundary conditions for the SSA stress balance, in which the
+vertically-integrated forms of the stresses <span class="math notranslate nohighlight">\(\td{xx},\td{xy},\td{yy}\)</span> are balanced
+separately from the shear stresses <span class="math notranslate nohighlight">\(\td{xz},\td{yz}\)</span>, the third of the above equations can
+be omitted from the remaining analysis.</p>
+<p>Let <span class="math notranslate nohighlight">\(\pice=\rhoi g (h-z)\)</span>. In the hydrostatic approximation, <span class="math notranslate nohighlight">\(t_{zz}=-\pice\)</span>
+(<a class="bibtex reference internal" href="../zzz_references_html.html#greveblatter2009" id="id3">[56]</a>, equation (5.59)). Next, since <span class="math notranslate nohighlight">\(\td{}\)</span> has trace zero,</p>
+<div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}p &amp;= p - \td{xx} - \td{yy} - \td{zz}\\&amp;= - t_{zz} - \td{xx} - \td{yy}\\&amp;= \pice - \td{xx} - \td{yy}.\end{aligned}\end{align} \]</div>
+<p>Thus</p>
+<div class="math notranslate nohighlight" id="equation-ssafd-cfbc-1">
+<span class="eqno">(49)<a class="headerlink" href="#equation-ssafd-cfbc-1" title="Permalink to this equation">¶</a></span>\[\begin{split}\begin{array}{rcrcl}
+  (2\td{xx} + \td{yy}) \nx &amp;+&amp; \td{xy} \ny &amp;=&amp; (\pice - \psw) \nx,\\
+  \td{xy} \nx &amp;+&amp; (2\td{yy} + \td{xx}) \ny &amp;=&amp; (\pice - \psw) \ny.\\
+\end{array}\end{split}\]</div>
+<p>Now, using the “viscosity form” of the flow law</p>
+<div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}\td{} &amp;= 2\viscosity\, D,\\\viscosity &amp;= \frac 12 B(T) d_{e}^{1/n-1}\end{aligned}\end{align} \]</div>
+<p>and the fact that in the shallow shelf approximation <span class="math notranslate nohighlight">\(u\)</span> and <span class="math notranslate nohighlight">\(v\)</span> are depth-independent, we
+can define the membrane stress <span class="math notranslate nohighlight">\(N\)</span> as the vertically-integrated deviatoric stress</p>
+<div class="math notranslate nohighlight">
+\[N_{ij} = \int_{b}^{h} t^{D}_{ij} dz = 2\, \bar \viscosity\, H\, D_{ij}.\]</div>
+<p>Here <span class="math notranslate nohighlight">\(\bar \viscosity\)</span> is the vertically-averaged effective viscosity.</p>
+<p>Integrating <a class="reference internal" href="#equation-ssafd-cfbc-1">(49)</a> with respect to <span class="math notranslate nohighlight">\(z\)</span>, we get</p>
+<div class="math notranslate nohighlight" id="equation-ssafd-cfbc-3">
+<span class="eqno">(50)<a class="headerlink" href="#equation-ssafd-cfbc-3" title="Permalink to this equation">¶</a></span>\[\begin{split}\begin{array}{rcrcl}
+  (2N_{xx} + N_{yy}) \nx &amp;+&amp; N_{xy} \ny &amp;=&amp; \displaystyle \int_{b}^{h}(\pice - \psw) dz\, \nx,\\
+  N_{xy} \nx &amp;+&amp; (2N_{yy} + N_{xx}) \ny &amp;=&amp; \displaystyle \int_{b}^{h}(\pice - \psw) dz\, \ny.
+\end{array}\end{split}\]</div>
+</div>
+<div class="section" id="shallow-shelf-approximation">
+<h2><a class="toc-backref" href="#id9">Shallow shelf approximation</a><a class="headerlink" href="#shallow-shelf-approximation" title="Permalink to this headline">¶</a></h2>
+<p>The shallow shelf approximation written in terms of <span class="math notranslate nohighlight">\(N_{ij}\)</span> is</p>
+<div class="math notranslate nohighlight" id="equation-ssafd-cfbc-2">
+<span class="eqno">(51)<a class="headerlink" href="#equation-ssafd-cfbc-2" title="Permalink to this equation">¶</a></span>\[\begin{split}\begin{array}{rcrcl}
+  \D \diff{}{x}(2N_{xx} + N_{yy}) &amp;+&amp; \D \diff{N_{xy}}{y} &amp;=&amp; \D \rho g H \diff{h}{x},\\
+  \D \diff{N_{xy}}{x} &amp;+&amp; \D \diff{}{y}(2N_{yy} + N_{xx}) &amp;=&amp; \D \rho g H \diff{h}{y}.
+\end{array}\end{split}\]</div>
+</div>
+<div class="section" id="implementing-the-calving-front-boundary-condition">
+<h2><a class="toc-backref" href="#id10">Implementing the calving front boundary condition</a><a class="headerlink" href="#implementing-the-calving-front-boundary-condition" title="Permalink to this headline">¶</a></h2>
+<p>We use centered finite difference approximations in the discretization of the SSA
+<a class="reference internal" href="#equation-ssafd-cfbc-2">(51)</a>. Consider the first equation:</p>
+<div class="math notranslate nohighlight" id="equation-ssafd-cfbc-4">
+<span class="eqno">(52)<a class="headerlink" href="#equation-ssafd-cfbc-4" title="Permalink to this equation">¶</a></span>\[\diff{}{x}(2N_{xx} + N_{yy}) + \D \diff{N_{xy}}{y} = \D \rho g H \diff{h}{x}.\]</div>
+<p>Let <span class="math notranslate nohighlight">\(\tilde F\)</span> be an approximation of <span class="math notranslate nohighlight">\(F\)</span> using a finite-difference scheme. Then the first
+SSA equation is approximated by</p>
+<div class="math notranslate nohighlight">
+\[\frac1{\dx}\left(\partI_{i+\frac12,j} - \partI_{i-\frac12,j}\right) +
+\frac1{\dy}\left(\partII_{i,j+\frac12} - \partII_{i,j-\frac12}\right) =
+\rho g H \frac{h_{i+\frac12,j} - h_{i-\frac12,j}}{\dx}.\]</div>
+<p>Now, assume that the cell boundary (face) at <span class="math notranslate nohighlight">\(i+\frac12,j\)</span> is at the
+calving front. Then <span class="math notranslate nohighlight">\(\n = (1,0)\)</span> and from <a class="reference internal" href="#equation-ssafd-cfbc-3">(50)</a> we have</p>
+<div class="math notranslate nohighlight" id="equation-ssafd-cfbc-vertintbdry">
+<span class="eqno">(53)<a class="headerlink" href="#equation-ssafd-cfbc-vertintbdry" title="Permalink to this equation">¶</a></span>\[2N_{xx} + N_{yy} = \int_{b}^{h}(\pice - \psw) dz.\]</div>
+<p>We call the right-hand side of <a class="reference internal" href="#equation-ssafd-cfbc-vertintbdry">(53)</a> the “pressure difference term.”</p>
+<p>In forming the matrix approximation of the SSA <a class="bibtex reference internal" href="../zzz_references_html.html#bbssasliding" id="id4">[29]</a>,
+<a class="bibtex reference internal" href="../zzz_references_html.html#winkelmannetal2011" id="id5">[37]</a>, instead of assembling a matrix row corresponding to the
+generic equation <a class="reference internal" href="#equation-ssafd-cfbc-4">(52)</a> we use</p>
+<div class="math notranslate nohighlight">
+\[\frac1{\dx}\left(\left[\int_{b}^{h}(\pice - \psw) dz\right]_{i+\frac12,j} - \partI_{i-\frac12,j}\right) +
+\frac1{\dy}\left(\partII_{i,j+\frac12} - \partII_{i,j-\frac12}\right) =
+\rho g H \frac{h_{i+\frac12,j} - h_{i-\frac12,j}}{\dx}.\]</div>
+<p>Moving terms that do not depend on the velocity field to the
+right-hand side, we get</p>
+<div class="math notranslate nohighlight">
+\[\frac1{\dx}\left(- \partI_{i-\frac12,j}\right) +
+\frac1{\dy}\left(\partII_{i,j+\frac12} - \partII_{i,j-\frac12}\right) =
+\rho g H \frac{h_{i+\frac12,j} - h_{i-\frac12,j}}{\dx} + \left[\frac{\int_{b}^{h}(\psw - \pice) dz}{\dx}\right]_{i+\frac12,j}.\]</div>
+<p>The second equation and other cases (<span class="math notranslate nohighlight">\(\n = (-1,0)\)</span>, etc) are treated similarly.</p>
+</div>
+</div>
+
+
+      <hr>
+      <table style="width: 100%">
+        <tr>
+          <td style="text-align: left; width: 30%">
+              <a class="reference internal" href="bed_roughness.html">Previous</a>
+          </td>
+          <td style="text-align: center; width: 30%">
+              <a class="reference internal" href="index.html">Up</a>
+          </td>
+          <td style="text-align: right; width: 30%">
+              <a class="reference internal" href="ssafd-flow-line.html">Next</a>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/pism-logo.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../acknowledgements.html">Acknowledgements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation/index.html">Installing PISM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../manual/index.html">PISM User’s Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../climate_forcing/index.html">Climate forcing</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Technical notes</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="release_checklist.html">Release checklist</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cf-standard-names.html">CF standard names used by PISM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vertchange.html">On the vertical coordinate in PISM, and a critical change of variable</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bed_roughness.html">Using Schoof’s parameterized bed roughness technique in PISM</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Calving front stress boundary condition</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#notation">Notation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id1">Calving front stress boundary condition</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#shallow-shelf-approximation">Shallow shelf approximation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#implementing-the-calving-front-boundary-condition">Implementing the calving front boundary condition</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ssafd-flow-line.html">Notes about the flow-line SSA</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bombproof.html">BOMBPROOF, PISM’s numerical scheme for conservation of energy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="steady-hydrology.html">Computing steady-state subglacial water flux</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ocean-th.html">Three-equation ocean model (implementation details)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="blatter-pattyn.html">Blatter stress balance solver: technical details</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing/index.html">Contributing to PISM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../authorship.html">Authorship</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../zzz_references_html.html">References</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      Git revision v2.0.3-16-gad24975a0
+      committed by Constantine Khrulev
+      on 2022-05-25 10:48:10 -0800 |
+      &copy; 2004--2022, the PISM authors.
+      
+    </div>
+  </body>
+</html>

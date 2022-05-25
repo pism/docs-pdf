@@ -1,0 +1,192 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Building PETSc &#8212; PISM, a Parallel Ice Sheet Model 2.0.4 documentation</title>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Building PISM" href="pism.html" />
+    <link rel="prev" title="Installing PISM using Spack" href="spack.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+<div class="documentwrapper">
+  <div class="bodywrapper">
+    <div class="body" role="main">
+      
+  <div class="section" id="building-petsc">
+<span id="sec-install-petsc"></span><h1>Building PETSc<a class="headerlink" href="#building-petsc" title="Permalink to this headline">¶</a></h1>
+<p>PISM is built on top of <a class="reference external" href="https://petsc.org/release/">PETSc</a>, which is actively developed and an up-to-date PETSc
+distribution may not be available in package repositories. Download the PETSc
+source by grabbing the current gzipped tarball at:</p>
+<blockquote>
+<div><p><a class="reference external" href="https://petsc.org/release/download/">https://petsc.org/release/download/</a></p>
+</div></blockquote>
+<p>Use version 3.7 or newer; see <a class="reference internal" href="prerequisites.html#sec-install-prerequisites"><span class="std std-ref">Required tools and libraries</span></a> for
+details.</p>
+<p>You should configure and build PETSc as described on the <a class="reference external" href="https://petsc.org/release/install/">PETSc installation page</a>, but it might be best to read the following comments on the PETSc
+configure and build process first.</p>
+<p>Untar in your preferred location and enter the new PETSc directory. Note PETSc should
+<em>not</em> be configured using root privileges. When you run the configure script the following
+options are recommended; note PISM uses shared libraries by default:</p>
+<div class="literal-block-wrapper docutils container" id="id3">
+<div class="code-block-caption"><span class="caption-number">Listing 1 </span><span class="caption-text">Building PETSc</span><a class="headerlink" href="#id3" title="Permalink to this code">¶</a></div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">petsc_prefix</span><span class="o">=</span><span class="nv">$HOME</span>/local/petsc
+<span class="nv">PETSC_DIR</span><span class="o">=</span><span class="nv">$PWD</span>
+<span class="nv">PETSC_ARCH</span><span class="o">=</span><span class="s2">&quot;linux-opt&quot;</span>
+
+./configure <span class="se">\</span>
+  --prefix<span class="o">=</span><span class="si">${</span><span class="nv">petsc_prefix</span><span class="si">}</span> <span class="se">\</span>
+  --with-cc<span class="o">=</span>mpicc <span class="se">\</span>
+  --with-cxx<span class="o">=</span>mpicxx <span class="se">\</span>
+  --with-fc<span class="o">=</span>mpifort <span class="se">\</span>
+  --with-shared-libraries <span class="se">\</span>
+  --with-debugging<span class="o">=</span><span class="m">0</span> <span class="se">\</span>
+  --with-petsc4py <span class="se">\</span>
+  --download-f2cblaslapack
+
+<span class="nb">export</span> <span class="nv">PYTHONPATH</span><span class="o">=</span><span class="si">${</span><span class="nv">petsc_prefix</span><span class="si">}</span>/lib
+make all
+make install
+make <span class="nv">PETSC_DIR</span><span class="o">=</span><span class="si">${</span><span class="nv">petsc_prefix</span><span class="si">}</span> <span class="nv">PETSC_ARCH</span><span class="o">=</span><span class="s2">&quot;&quot;</span> check
+</pre></div>
+</div>
+</div>
+<p>This will install PETSc and its Python bindings in the directory <code class="docutils literal notranslate"><span class="pre">~/local/petsc</span></code>. Remove
+<code class="docutils literal notranslate"><span class="pre">--with-petsc4py</span></code> if you don’t need Python bindings (e.g. if you are not going to use
+PISM’s Python bindings).</p>
+<ul class="simple">
+<li><p>You need to define the environment variables <code class="docutils literal notranslate"><span class="pre">PETSC_DIR</span></code> and <code class="docutils literal notranslate"><span class="pre">PETSC_ARCH</span></code><a class="footnote-reference brackets" href="#f1" id="id1">1</a>
+(one way is shown here) <em>before</em> running the configuration script.</p></li>
+<li><p>We recommend using MPI’s compiler wrappers to specify an MPI library when installing
+PETSc (see <code class="docutils literal notranslate"><span class="pre">--with-cc=mpicc</span></code>, <code class="docutils literal notranslate"><span class="pre">--with-cxx=mpicxx</span></code>, and <code class="docutils literal notranslate"><span class="pre">--with-fc=mpifort</span></code> above).</p></li>
+<li><p>Turning off the inclusion of debugging code and symbols (<code class="docutils literal notranslate"><span class="pre">--with-debugging=0</span></code>) can
+give a significant speed improvement, but some kinds of development will benefit from
+setting <code class="docutils literal notranslate"><span class="pre">--with-debugging=1</span></code>.</p></li>
+<li><p>Using shared libraries may be unwise on certain clusters; check with your system
+administrator.</p></li>
+<li><p>The option <code class="docutils literal notranslate"><span class="pre">--download-f2cblaslapack=1</span></code> tells PETSc to download BLAS and LAPACK rather
+than using the system-wide version. This tends to work well for PISM, but see section
+3.5.3 of <a class="bibtex reference internal" href="../zzz_references_html.html#petsc-user-ref" id="id2">[26]</a> for instructions regarding building PETSc with optimized
+BLAS and LAPACK libraries.</p></li>
+<li><p>If you get messages suggesting that PETSc cannot configure using your existing MPI, you
+might want to try adding <code class="docutils literal notranslate"><span class="pre">--download-mpich=1</span></code> (or <code class="docutils literal notranslate"><span class="pre">--download-openmpi=1</span></code>).</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Configuration of PETSc for a batch system requires special procedures described at the
+PETSc documentation site. One starts with a configure option <code class="docutils literal notranslate"><span class="pre">--with-batch=1</span></code>. See
+the “Installing on machine requiring cross compiler or a job scheduler” section of the
+<a class="reference external" href="https://petsc.org/release/install/">PETSc installation page</a>.</p>
+</div>
+<p class="rubric">Footnotes</p>
+<dl class="footnote brackets">
+<dt class="label" id="f1"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
+<dd><p>The <code class="docutils literal notranslate"><span class="pre">PETSC_ARCH</span></code> variable is just a string you can use to choose different
+PETSc configurations and does not have any other significance.</p>
+</dd>
+</dl>
+</div>
+
+
+      <hr>
+      <table style="width: 100%">
+        <tr>
+          <td style="text-align: left; width: 30%">
+              <a class="reference internal" href="spack.html">Previous</a>
+          </td>
+          <td style="text-align: center; width: 30%">
+              <a class="reference internal" href="cookbook.html">Up</a>
+          </td>
+          <td style="text-align: right; width: 30%">
+              <a class="reference internal" href="pism.html">Next</a>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/pism-logo.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../acknowledgements.html">Acknowledgements</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Installing PISM</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="prerequisites.html">Required tools and libraries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parallel-io-libraries.html">Installing parallel I/O libraries</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="cookbook.html">Installation Cookbook</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="debian.html">Installing prerequisites on Debian or Ubuntu</a></li>
+<li class="toctree-l3"><a class="reference internal" href="arch.html">Installing prerequisites and building PISM on Arch Linux</a></li>
+<li class="toctree-l3"><a class="reference internal" href="macos.html">Installing required libraries on macOS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="spack.html">Installing PISM using Spack</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Building PETSc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pism.html">Building PISM</a></li>
+<li class="toctree-l3"><a class="reference internal" href="common-problems.html">Common build problems and solutions</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="quick-tests.html">Quick tests of the installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quick-tests.html#next-steps">Next steps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="documentation.html">Rebuilding PISM documentation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../manual/index.html">PISM User’s Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../climate_forcing/index.html">Climate forcing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../technical/index.html">Technical notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing/index.html">Contributing to PISM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../authorship.html">Authorship</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../zzz_references_html.html">References</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      Git revision v2.0.3-16-gad24975a0
+      committed by Constantine Khrulev
+      on 2022-05-25 10:48:10 -0800 |
+      &copy; 2004--2022, the PISM authors.
+      
+    </div>
+  </body>
+</html>

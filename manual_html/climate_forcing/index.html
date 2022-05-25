@@ -1,0 +1,240 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Climate forcing &#8212; PISM, a Parallel Ice Sheet Model 2.0.4 documentation</title>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({"TeX": {"Macros": {"dx": "\\Delta x", "dy": "\\Delta y", "dz": "\\Delta z", "dt": "\\Delta t", "km": "\\,\\text{km}", "Diff": [" \\frac{\\mathrm{d}#1}{\\mathrm{d}#2} ", "2"], "diff": [" \\frac{\\partial #1}{\\partial #2} ", "2"], "var": [" {#1}_{\\text{#2}} ", "2"], "h": [" \\var{h}{#1} ", "1"], "T": [" \\var{T}{#1} ", "1"], "m": [" \\var{m}{#1} ", "1"], "ms": [" \\var{m^{*}}{#1} ", "1"], "psw": "p_{\\text{water}}", "pice": "p_{\\text{ice}}", "pmelange": "\\bar p_{\\text{melange}}", "rhoi": "\\rho_{\\text{ice}}", "rhow": "\\rho_{\\text{water}}", "n": "\\boldsymbol{n}", "nx": "\\n_{x}", "ny": "\\n_{y}", "phimin": "\\phi_{\\mathrm{min}}", "phimax": "\\phi_{\\mathrm{max}}", "bmin": "b_{\\mathrm{min}}", "bmax": "b_{\\mathrm{max}}", "bq": "\\mathbf{q}", "Up": ["\\operatorname{Up}\\left(#1\\big|#2\\right)", "2"], "uppair": ["\\left\\{\\begin{matrix} #1 \\\\ #2 \\end{matrix}\\right\\}", "2"], "Div": "\\nabla \\cdot", "V": "\\mathbf{V}", "Wtill": "W_{\\mathrm{till}}", "zs": "z_{\\text{sea level}}", "uu": "\\boldsymbol{u}", "nz": "\\n_{z}", "td": ["t^{D}_{#1}", "1"], "D": "\\displaystyle", "viscosity": "\\nu", "partI": "(2\\tilde N_{xx} + \\tilde N_{yy})", "partII": "(\\tilde N_{xy})", "E": "\\dot{\\boldsymbol{\\epsilon}}", "exponent": "\\frac{1-n}{2n}", "p": ["\\left(#1\\right)", "1"], "f": "\\rho\\, g\\, \\nabla s", "Id": "\\int_{\\Omega}", "Ib": "\\int_{\\partial\\Omega}", "Ibase": "\\int_{\\text{base}}", "dphi": ["\\diff{\\varphi_{#1}}{#2}", "2", "i"], "dpsi": ["\\diff{\\psi_{#1}}{#2}", "2", "i"], "Hmin": "H_{\\text{min}}", "dbeta": "\\diff{\\beta}{\\alpha}", "K": ["K_{i,j,#1,#2}", "2"], "ELA": "h_{\\text{ELA}}", "dphimin": "\\Delta \\phi_{\\mathrm{min}}", "dphimax": "\\Delta \\phi_{\\mathrm{max}}"}}})</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Using time-dependent forcing" href="time-dependent.html" />
+    <link rel="prev" title="Diagnostic quantities" href="../manual/diagnostics/index.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+<div class="documentwrapper">
+  <div class="bodywrapper">
+    <div class="body" role="main">
+      
+  <div class="section" id="climate-forcing">
+<span id="sec-climate-forcing"></span><h1>Climate forcing<a class="headerlink" href="#climate-forcing" title="Permalink to this headline">¶</a></h1>
+<p>PISM has a well-defined separation of climate forcing from ice dynamics. This manual is
+about the climate forcing interface.</p>
+<p>By contrast, most options documented in the <a class="reference internal" href="../manual/index.html#sec-users-manual"><span class="std std-ref">PISM User’s Manual</span></a> control the ice
+dynamics part. The User’s Manual does, however, give an <a class="reference internal" href="../manual/highlevelview/climate-inputs.html#sec-climate-inputs"><span class="std std-ref">overview of PISM’s surface
+(atmosphere) and ocean (sub-shelf) interfaces</span></a>. At these interfaces
+the surface mass and energy balances are determined and/or passed to the ice dynamics
+code.</p>
+<p>To get started with climate forcing usage we need to introduce some language to describe
+parts of PISM. In this manual a <em>component</em> is a piece of PISM code, usually a C++ class.
+A combination of components (or, in some cases, one component) makes up a “model” — an
+implementation of a physical or mathematical description of a system.</p>
+<p>PISM’s climate forcing code has two kinds of components.</p>
+<ul class="simple">
+<li><p>Ones that can be used as “stand-alone” models, such as the implementation of the PDD
+scheme (section <a class="reference internal" href="surface.html#sec-surface-pdd"><span class="std std-ref">Temperature-index scheme</span></a>). These are <em>model components</em>.</p></li>
+<li><p>Ones implementing “adjustments” of various kinds, such as lapse rate corrections
+(sections <a class="reference internal" href="surface.html#sec-surface-elevation-change"><span class="std std-ref">Adjustments using modeled change in surface elevation</span></a> and <a class="reference internal" href="atmosphere.html#sec-atmosphere-elevation-change"><span class="std std-ref">Adjustments using modeled change in surface elevation</span></a>) or
+ice-core derived offsets (sections <a class="reference internal" href="surface.html#sec-surface-delta-t"><span class="std std-ref">Scalar temperature offsets</span></a> and
+<a class="reference internal" href="ocean.html#sec-ocean-delta-sl"><span class="std std-ref">Scalar sea level offsets</span></a>, for example). These are called <em>modifier components</em> or
+<em>modifiers</em>.</p></li>
+</ul>
+<p>Model components and modifiers can be chained as shown in
+<a class="reference internal" href="../manual/highlevelview/climate-inputs.html#fig-climate-input-data-flow"><span class="std std-numref">Fig. 16</span></a>. For example,</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>-ocean constant,delta_T -ocean_delta_T_file delta_T.nc
+</pre></div>
+</div>
+<p>combines the component providing constant (both in space and time) ocean boundary
+conditions with a modifier that applies scalar temperature offsets. This combination
+one of the many ocean models that can be chosen using components as building blocks.</p>
+<p>Section <a class="reference internal" href="examples.html#sec-forcing-examples"><span class="std std-ref">Examples and corresponding options</span></a> gives examples of combining components to choose
+models. Before that we address how PISM interprets time-dependent inputs (Section
+<a class="reference internal" href="time-dependent.html#sec-forcing-time-dependent"><span class="std std-ref">Using time-dependent forcing</span></a>).</p>
+<div class="admonition-summary-of-the-main-idea-in-using-this-manual admonition">
+<p class="admonition-title">Summary of the main idea in using this manual</p>
+<p>Setting up PISM’s climate interface <em>requires</em> selecting one surface and one ocean
+component. The surface component may use an atmosphere component also; see
+<a class="reference internal" href="../manual/highlevelview/climate-inputs.html#fig-climate-input-data-flow"><span class="std std-numref">Fig. 16</span></a>. Command-line options <code class="option docutils literal notranslate"><span class="pre">-atmosphere</span></code>,
+<code class="option docutils literal notranslate"><span class="pre">-surface</span></code> and <code class="option docutils literal notranslate"><span class="pre">-ocean</span></code> each take a comma-separated list of keywords as an
+argument; the first keyword <em>has</em> to correspond to a model component, the rest can be
+“modifier” components. Any of these options can be omitted to use the default
+atmosphere, surface or ocean model components, but one has to explicitly choose a model
+component to use a modifier.</p>
+<p>Model components and modifiers are chained as in <a class="reference internal" href="../manual/highlevelview/climate-inputs.html#fig-climate-input-data-flow"><span class="std std-numref">Fig. 16</span></a>;
+arrows in this figure indicate the data flow.</p>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="time-dependent.html">Using time-dependent forcing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="time-dependent.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="time-dependent.html#scalar-time-dependent-inputs">Scalar time-dependent inputs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="time-dependent.html#spatially-variable-time-dependent-inputs">Spatially-variable time-dependent inputs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="time-dependent.html#periodic-forcing">Periodic forcing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="time-dependent.html#adding-time-bounds">Adding time bounds</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="time-dependent.html#times-as-mid-points-of-intervals">Times as mid-points of intervals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="time-dependent.html#times-as-left-end-points-of-intervals">Times as left end points of intervals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="time-dependent.html#times-as-right-end-points-of-intervals">Times as right end points of intervals</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples and corresponding options</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples.html#one-way-coupling-to-a-climate-model">One way coupling to a climate model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="examples.html#reading-ice-surface-temperature-and-mass-balance">Reading ice surface temperature and mass balance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples.html#reading-air-temperature-and-precipitation">Reading air temperature and precipitation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html#using-climate-anomalies">Using climate anomalies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html#sec-example-searise-greenland">SeaRISE-Greenland</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html#searise-greenland-paleo-climate-run">SeaRISE-Greenland paleo-climate run</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html#antarctic-paleo-climate-runs">Antarctic paleo-climate runs</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="testing.html">Testing if forcing data is used correctly</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="testing.html#visualizing-climate-inputs-without-ice-dynamics">Visualizing climate inputs, without ice dynamics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="testing.html#using-low-resolution-test-runs">Using low-resolution test runs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="testing.html#visualizing-the-climate-inputs-in-the-greenland-case">Visualizing the climate inputs in the Greenland case</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="surface.html">Surface mass and energy process model components</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="surface.html#the-invisible-model">The “invisible” model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="surface.html#reading-top-surface-boundary-conditions-from-a-file">Reading top-surface boundary conditions from a file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="surface.html#elevation-dependent-temperature-and-mass-balance">Elevation-dependent temperature and mass balance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="surface.html#temperature-index-scheme">Temperature-index scheme</a></li>
+<li class="toctree-l2"><a class="reference internal" href="surface.html#pik">PIK</a></li>
+<li class="toctree-l2"><a class="reference internal" href="surface.html#scalar-temperature-offsets">Scalar temperature offsets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="surface.html#adjustments-using-modeled-change-in-surface-elevation">Adjustments using modeled change in surface elevation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="surface.html#mass-flux-adjustment">Mass flux adjustment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="surface.html#using-climate-data-anomalies">Using climate data anomalies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="surface.html#the-caching-modifier">The caching modifier</a></li>
+<li class="toctree-l2"><a class="reference internal" href="surface.html#preventing-grounding-line-retreat">Preventing grounding line retreat</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="atmosphere.html">Atmosphere model components</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="atmosphere.html#reading-boundary-conditions-from-a-file">Reading boundary conditions from a file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atmosphere.html#cosine-yearly-cycle">Cosine yearly cycle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atmosphere.html#sec-atmosphere-searise-greenland">SeaRISE-Greenland</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atmosphere.html#pik">PIK</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atmosphere.html#one-weather-station">One weather station</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atmosphere.html#scalar-temperature-offsets">Scalar temperature offsets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atmosphere.html#scalar-precipitation-offsets">Scalar precipitation offsets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atmosphere.html#precipitation-scaling">Precipitation scaling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atmosphere.html#precipitation-correction-using-scalar-temperature-offsets">Precipitation correction using scalar temperature offsets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atmosphere.html#adjustments-using-modeled-change-in-surface-elevation">Adjustments using modeled change in surface elevation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atmosphere.html#using-climate-data-anomalies">Using climate data anomalies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atmosphere.html#orographic-precipitation">Orographic precipitation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ocean.html">Ocean model components</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ocean.html#constant-in-time-and-space">Constant in time and space</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ocean.html#reading-forcing-data-from-a-file">Reading forcing data from a file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ocean.html#pik">PIK</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ocean.html#basal-melt-rate-and-temperature-from-thermodynamics-in-boundary-layer">Basal melt rate and temperature from thermodynamics in boundary layer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ocean.html#pico">PICO</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ocean.html#scalar-sea-level-offsets">Scalar sea level offsets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ocean.html#two-dimensional-sea-level-offsets">Two-dimensional sea level offsets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ocean.html#scalar-sub-shelf-temperature-offsets">Scalar sub-shelf temperature offsets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ocean.html#scalar-sub-shelf-mass-flux-offsets">Scalar sub-shelf mass flux offsets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ocean.html#scalar-sub-shelf-mass-flux-fraction-offsets">Scalar sub-shelf mass flux fraction offsets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ocean.html#two-dimensional-sub-shelf-mass-flux-offsets">Two-dimensional sub-shelf mass flux offsets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ocean.html#scalar-melange-back-pressure-offsets">Scalar melange back pressure offsets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ocean.html#melange-back-pressure-as-a-fraction-of-pressure-difference">Melange back pressure as a fraction of pressure difference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ocean.html#the-caching-modifier">The caching modifier</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+
+      <hr>
+      <table style="width: 100%">
+        <tr>
+          <td style="text-align: left; width: 30%">
+              <a class="reference internal" href="../manual/diagnostics/index.html">Previous</a>
+          </td>
+          <td style="text-align: center; width: 30%">
+          </td>
+          <td style="text-align: right; width: 30%">
+              <a class="reference internal" href="time-dependent.html">Next</a>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/pism-logo.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../acknowledgements.html">Acknowledgements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation/index.html">Installing PISM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../manual/index.html">PISM User’s Manual</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Climate forcing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="time-dependent.html">Using time-dependent forcing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html">Examples and corresponding options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="testing.html">Testing if forcing data is used correctly</a></li>
+<li class="toctree-l2"><a class="reference internal" href="surface.html">Surface mass and energy process model components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atmosphere.html">Atmosphere model components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ocean.html">Ocean model components</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../technical/index.html">Technical notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing/index.html">Contributing to PISM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../authorship.html">Authorship</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../zzz_references_html.html">References</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      Git revision v2.0.3-16-gad24975a0
+      committed by Constantine Khrulev
+      on 2022-05-25 10:48:10 -0800 |
+      &copy; 2004--2022, the PISM authors.
+      
+    </div>
+  </body>
+</html>
